@@ -4,7 +4,7 @@
 # educational purposes provided that (1) you do not distribute or publish
 # solutions, (2) you retain this notice, and (3) you provide clear
 # attribution to UC Berkeley, including a link to http://ai.berkeley.edu.
-# 
+#
 # Attribution Information: The Pacman AI projects were developed at UC Berkeley.
 # The core projects and autograders were primarily created by John DeNero
 # (denero@cs.berkeley.edu) and Dan Klein (klein@cs.berkeley.edu).
@@ -148,19 +148,16 @@ class ExactInference(InferenceModule):
         emissionModel = busters.getObservationDistribution(noisyDistance)
         pacmanPosition = gameState.getPacmanPosition()
 
-        "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        if noisyDistance is None:
+            self.beliefs = util.Counter()
+            self.beliefs[self.getJailPosition()] = 1
+            return
 
-        # Replace this code with a correct observation update
-        # Be sure to handle the "jail" edge case where the ghost is eaten
-        # and noisyDistance is None
         allPossible = util.Counter()
         for p in self.legalPositions:
             trueDistance = util.manhattanDistance(p, pacmanPosition)
             if emissionModel[trueDistance] > 0:
-                allPossible[p] = 1.0
-
-        "*** END YOUR CODE HERE ***"
+                allPossible[p] = emissionModel[trueDistance] * self.beliefs[p]
 
         allPossible.normalize()
         self.beliefs = allPossible
@@ -219,7 +216,15 @@ class ExactInference(InferenceModule):
         positions after a time update from a particular position.
         """
         "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+
+        allPossible = util.Counter()
+        for oldPos, oldProb in self.beliefs.items():
+            newPosDist = self.getPositionDistribution(self.setGhostPosition(gameState, oldPos))
+            for newPos, prob in newPosDist.items():
+                allPossible[newPos] += prob * oldProb
+
+        allPossible.normalize()
+        self.beliefs = allPossible
 
     def getBeliefDistribution(self):
         return self.beliefs
@@ -245,4 +250,3 @@ def setGhostPositions(gameState, ghostPositions):
         conf = game.Configuration(pos, game.Directions.STOP)
         gameState.data.agentStates[index + 1] = game.AgentState(conf, False)
     return gameState
-
