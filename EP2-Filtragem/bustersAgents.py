@@ -1,3 +1,7 @@
+# -*- coding: utf-8 -*-
+
+# Guilherme Schützer 8658544
+
 # bustersAgents.py
 # ----------------
 # Licensing Information:  You are free to use or extend these projects for
@@ -163,20 +167,24 @@ class GreedyBustersAgent(BustersAgent):
             [beliefs for i, beliefs in enumerate(self.ghostBeliefs)
              if livingGhosts[i+1]]
 
+        # calcula a distância do Pacman à posição mais provável de cada fantasma
         mostLikelyDist = util.Counter()
         for distribution in livingGhostPositionDistributions:
             likelyGhostPosition = distribution.argMax()
             mostLikelyDist[likelyGhostPosition] = self.distancer.getDistance(pacmanPosition, likelyGhostPosition)
 
+        # extrai a distância mínima (minDist) e a posição correspondente de mostLikelyDist
         mostLikelyDist.divideAll(-1)
         closestLikelyPos = mostLikelyDist.argMax()
         minDist = mostLikelyDist[closestLikelyPos] * -1
 
+        # escolhe a ação que mais diminua a distância entre o jogador e closestLikelyPos
         chosenAction = 'STOP'
         for action in legal:
             successorPosition = Actions.getSuccessor(pacmanPosition, action)
             dist = self.distancer.getDistance(successorPosition, closestLikelyPos)
             if dist < minDist:
+                minDist = dist
                 chosenAction = action
 
         return chosenAction

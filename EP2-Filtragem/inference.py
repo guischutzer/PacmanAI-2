@@ -1,3 +1,7 @@
+# -*- coding: utf-8 -*-
+
+# Guilherme Schützer 8658544
+
 # inference.py
 # ------------
 # Licensing Information:  You are free to use or extend these projects for
@@ -148,17 +152,25 @@ class ExactInference(InferenceModule):
         emissionModel = busters.getObservationDistribution(noisyDistance)
         pacmanPosition = gameState.getPacmanPosition()
 
+        # caso especial em que o fantasma está capturado
         if noisyDistance is None:
             self.beliefs = util.Counter()
             self.beliefs[self.getJailPosition()] = 1
             return
 
+        # counter allPossible guarda, para cada posição, o novo valor
+        # da probabilidade do fantasma estar nela
         allPossible = util.Counter()
         for p in self.legalPositions:
+            # extrai a distância da posição à posição atual do Pacman
             trueDistance = util.manhattanDistance(p, pacmanPosition)
+            # checagem necessária para que não se zere alguma probabilidade
+            # indevidamente por causa de algum erro
             if emissionModel[trueDistance] > 0:
+                # atualiza a probabilidade com o algoritmo forward
                 allPossible[p] = emissionModel[trueDistance] * self.beliefs[p]
 
+        # normaliza as probabilidades para que Pr(Omega) = 1
         allPossible.normalize()
         self.beliefs = allPossible
 
@@ -215,14 +227,19 @@ class ExactInference(InferenceModule):
         are used and how they combine to give us a belief distribution over new
         positions after a time update from a particular position.
         """
-        "*** YOUR CODE HERE ***"
 
+        # counter allPossible guarda as novas probabilidades para cada posição
         allPossible = util.Counter()
+        # itera simultaneamente pelas posições (antigas) e probabilidades respectivas
         for oldPos, oldProb in self.beliefs.items():
+            # calcula a distribuição de probabilidades (Pr(nova|antiga)) para a nova posição
             newPosDist = self.getPositionDistribution(self.setGhostPosition(gameState, oldPos))
+            # para cada nova posição e probabilidade correspondente da distribuição,
+            # soma a conta Pr(nova|antiga)*Pr(antiga)
             for newPos, prob in newPosDist.items():
                 allPossible[newPos] += prob * oldProb
 
+        # normaliza as probabilidades
         allPossible.normalize()
         self.beliefs = allPossible
 
